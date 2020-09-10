@@ -1,3 +1,10 @@
+# IP data
+lastIp.txt
+
+# env
+.env
+FwBackup/
+
 # Logs
 logs
 *.log
