@@ -109,6 +109,7 @@ async function apiUpdFirewall(fw){
 
 
 async function run() {
+    console.log(new Date());
     let savedIp;
     let newIp;
     try{ 
