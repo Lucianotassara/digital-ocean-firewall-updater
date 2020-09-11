@@ -1,4 +1,9 @@
-require('dotenv').config();
+// require('dotenv').config();
+const dotenv = require('dotenv');    
+dotenv.config({ path: __dirname + '/.env' });
+
+console.log(__dirname);
+
 const fetch = require('node-fetch');
 const fs = require('fs');
 const util = require('util');
@@ -69,7 +74,7 @@ async function getFirewall(){
 async function readSavedIpAddrees(){
     // Read lastIp.txt file
     let ip;
-    const readFile = util.promisify(fs.readFile);
+    let readFile = util.promisify(fs.readFile);
     
     function getStuff() {
         return readFile('lastIp.txt', 'utf8');
