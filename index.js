@@ -42,7 +42,7 @@ async function getPublicIPAddress() {
   let myPublicIp;
   const getIP = async () => {
     try {
-      const response = await fetch(`http://ipv4bot.whatismyipaddress.com`, {
+      const response = await fetch(`https://api.ipify.org?format=text`, {
         method: "GET",
         headers: {
           Accept: "text/html",
