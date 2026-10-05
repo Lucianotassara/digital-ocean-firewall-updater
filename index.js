@@ -4,7 +4,6 @@ dotenv.config({ path: __dirname + "/.env" });
 
 console.log(__dirname);
 
-const fetch = require("node-fetch");
 const fs = require("fs");
 const util = require("util");
 const yargs = require("yargs");
@@ -12,6 +11,7 @@ const yargs = require("yargs");
 let ports = [];
 let overwrite;
 let clean, cidr, force = false;
+let manualIp = null;
 
 /** args:
  *
@@ -39,25 +39,23 @@ function saveCurrentIpAddress(ip) {
 }
 
 async function getPublicIPAddress() {
-  let myPublicIp;
-  const getIP = async () => {
+  const services = [
+    "https://api4.ipify.org?format=text",
+    "https://ipv4.icanhazip.com",
+    "https://checkip.amazonaws.com",
+    "https://ipv4.my-ip.io/ip",
+  ];
+  for (const url of services) {
     try {
-      const response = await fetch(`https://api.ipify.org?format=text`, {
-        method: "GET",
-        headers: {
-          Accept: "text/html",
-          "Content-Type": "text/html",
-        },
-      });
-      const text = await response.text();
-      console.log(`Getting IP: ${text}`);
+      const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      const text = (await response.text()).trim();
+      console.log(`Getting IP from ${url}: ${text}`);
       return text;
     } catch (error) {
-      console.error(error);
+      console.warn(`Failed to get IP from ${url}: ${error.message}`);
     }
-  };
-  myPublicIp = await getIP();
-  return myPublicIp;
+  }
+  return null;
 }
 
 async function getFirewall() {
@@ -156,6 +154,11 @@ function parseArguments() {
         "To remove IP addresses on selected ports. Allowing no connection.",
       type: "boolean",
     })
+    .option("ip", {
+      alias: "i",
+      description: "Manually specify the IP address to use instead of auto-detecting.",
+      type: "string",
+    })
     .help()
     .alias("help", "h").argv;
 
@@ -176,6 +179,7 @@ function parseArguments() {
     argv.remove ? (clean = true) : (clean = false);
     argv.cidr ? (cidr = true) : (cidr = false);
     argv.force ? (force = true) : (force = false);
+    argv.ip ? (manualIp = argv.ip) : (manualIp = null);
 
   // console.log(argv);
 }
@@ -195,11 +199,16 @@ async function run() {
   let savedIp;
   let newIp;
   try {
-    newIp = await getPublicIPAddress();
+    newIp = manualIp ?? await getPublicIPAddress();
     savedIp = await readSavedIpAddrees();
   } catch (e) {
     console.error(e);
   }
+  if (!newIp) {
+    console.error("Could not retrieve public IP, aborting.");
+    return;
+  }
+  if (manualIp) console.log(`Using manually specified IP: ${manualIp}`);
   console.log(`Saved IP Address: ${savedIp}`);
   // console.log(`New IP: ${newIp}`);
 
