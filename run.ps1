@@ -1,1 +1,1 @@
-node index.js -p=22 -p=3306 -p=27017 -p=2083
+& "$PSScriptRoot\update-firewall.ps1" -Ports 22,3306,27017,2083 @args

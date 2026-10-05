@@ -1,2 +1,2 @@
-#!/bin/sh
-node index.js -p=22 -p=3306 -p=27017 -p=2083
+#!/usr/bin/env bash
+cd "$(dirname "$0")" && ./update-firewall.sh -p 22,3306,27017,2083 "$@"
